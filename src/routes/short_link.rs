@@ -13,22 +13,58 @@ use crate::{
 
 pub async fn index(
     State((db, _sv)): State<(DatabaseConnection, ServiceConfig)>,
-    id: String,
+    Path(id): Path<String>,
 ) -> Result<Redirect, ErrorResponse> {
-    return match entity::short_link::Entity::find()
-        .filter(entity::short_link::Column::Name.eq(id))
-        .filter(entity::short_link::Column::Enabled.eq(true))
-        .one(&db)
+    match db
+        .transaction(|ts| {
+            Box::pin(async move {
+                let link = entity::short_link::Entity::find()
+                    .filter(entity::short_link::Column::Name.eq(id.clone()))
+                    .filter(entity::short_link::Column::Enabled.eq(true))
+                    .one(ts)
+                    .await;
+                let link = match link {
+                    Ok(link) => link,
+                    Err(e) => return Err(e),
+                };
+                return if let Some(link) = link {
+                    match entity::short_link::Entity::update(entity::short_link::ActiveModel {
+                        name: sea_orm::ActiveValue::set(id.clone()),
+                        target: sea_orm::ActiveValue::NotSet,
+                        enabled: sea_orm::ActiveValue::NotSet,
+                        counter: sea_orm::ActiveValue::set(link.counter + 1),
+                    })
+                    .filter(entity::short_link::Column::Name.eq(id))
+                    .exec(ts)
+                    .await
+                    {
+                        Ok(_) => {}
+                        Err(e) => return Err(e),
+                    };
+                    Ok(Some(link))
+                } else {
+                    Ok(None)
+                };
+            })
+        })
         .await
     {
-        Ok(x) => {
-            if let Some(link) = x {
-                Ok(Redirect::to(&link.target))
-            } else {
-                Err(ShortLinkError::Invalid().to_error().to_response())
+        Ok(x) => match x {
+            Some(link) => {
+                return Ok(Redirect::to(&link.target));
+            }
+            None => return Err(ShortLinkError::Invalid().to_error().to_response()),
+        },
+        Err(e) => {
+            return match e {
+                sea_orm::TransactionError::Connection(e) => {
+                    Err(ShortLinkError::DatabaseError(e).to_error().to_response())
+                }
+                sea_orm::TransactionError::Transaction(_e) => {
+                    Err(ShortLinkError::Invalid().to_error().to_response())
+                }
             }
         }
-        Err(e) => Err(ShortLinkError::DatabaseError(e).to_error().to_response()),
     };
 }
 
@@ -166,7 +202,7 @@ async fn insert_link(
                     Err(ShortLinkError::DatabaseError(e).to_error().to_response())
                 }
                 sea_orm::TransactionError::Transaction(_e) => {
-                    Err(ShortLinkError::Invalid().to_error().to_response())
+                    Err(ShortLinkError::Exists().to_error().to_response())
                 }
             }
         }
@@ -219,7 +255,7 @@ async fn update_link(
         .transaction(|ts| {
             Box::pin(async move {
                 let a = entity::short_link::Entity::update(entity::short_link::ActiveModel {
-                    name: sea_orm::ActiveValue::NotSet,
+                    name: sea_orm::ActiveValue::set(link_id.clone()),
                     target: if let Some(x) = props.target {
                         sea_orm::ActiveValue::Set(x)
                     } else {

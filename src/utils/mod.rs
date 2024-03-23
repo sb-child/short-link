@@ -76,12 +76,10 @@ pub async fn auth_token(
                     .filter(entity::token::Column::CreatedAt.lt(token_outdated))
                     .exec(ts)
                     .await?;
-                // try to delete the token record
-                let deleted = entity::token::Entity::delete_by_id(nonce_2)
-                    .exec(ts)
-                    .await?;
+                // try to find the token record
+                let found = entity::token::Entity::find_by_id(nonce_2).one(ts).await?;
                 // commit if none
-                if deleted.rows_affected == 0 {
+                if found.is_none() {
                     return Ok::<VerifyResult, DbErr>(VerifyResult::Invalid);
                 }
                 Ok::<VerifyResult, DbErr>(VerifyResult::Success)

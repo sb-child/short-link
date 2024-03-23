@@ -90,7 +90,6 @@ pub async fn verify(
         .transaction(|ts| {
             let challenge_outdated = challenge_outdated;
             let token_outdated = token_outdated;
-            let payload = payload.clone();
             let nonce = nonce.clone();
             Box::pin(async move {
                 // delete old data
