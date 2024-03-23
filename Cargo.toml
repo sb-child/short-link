@@ -1,0 +1,55 @@
+[package]
+name = "short_link"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+# clap = { version = "*", features = ["derive"] }
+# clap_generate = "*"
+
+thiserror = { version = "*" }
+anyhow = { version = "*", features = ["backtrace"] }
+
+serde = { version = "*", features = ["derive"] }
+serde_json = { version = "*" }
+toml = { version = "*" }
+
+tokio = { version = "*", features = ["full"] }
+
+tracing = "*"
+tracing-subscriber = "*"
+ansi_term = "*"
+
+axum = { version = "*" }
+chrono = { version = "*" }
+bytes = { version = "*" }
+
+base64 = { version = "*" }
+generic-array = { version = "*" }
+uuid = { version = "*" }
+rand = { version = "*" }
+sha3 = { version = "*" }
+hex = { version = "*" }
+futures-channel = { version = "*" }
+futures-util = { version = "*" }
+async-trait = { version = "*" }
+sea-orm = { version = "*", features = [
+    "sqlx-postgres",
+    "runtime-tokio-rustls",
+    "macros",
+    "with-chrono",
+    "with-json",
+    "with-uuid",
+    "postgres-array",
+] }
+entity = { path = "entity" }
+
+[profile.release]
+opt-level = "z"
+debug = false
+lto = true
+panic = "abort"
+codegen-units = 1
+
+[workspace]
+members = [".", "entity", "migration"]

@@ -1,0 +1,9 @@
+{
+  "cSpell.words": ["chrono", "surrealdb"],
+  "rust-analyzer.linkedProjects": [
+    "./Cargo.toml",
+    "./Cargo.toml",
+    "./Cargo.toml",
+    "./migration/Cargo.toml"
+  ]
+}

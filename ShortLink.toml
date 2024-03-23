@@ -1,0 +1,10 @@
+database_url = "postgres://shortlnk:shortlnk@127.0.0.1/shortlnk_db"
+host = "127.0.0.1"
+port = 3000
+base = "/"
+log_level = "Warn"
+
+[service]
+secret = "YcDgFkJjDCwr5eOlGkxUlaperl7BwoWN"
+challenge_timeout = 60
+token_timeout = 60
