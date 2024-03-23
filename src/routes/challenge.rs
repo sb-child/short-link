@@ -145,13 +145,13 @@ pub async fn verify(
 
 pub async fn revoke(
     State((db, sv)): State<(DatabaseConnection, ServiceConfig)>,
-    Path((nonce, token)): Path<(String, String)>,
+    Path((nonce, hash)): Path<(String, String)>,
 ) -> Result<String, ErrorResponse> {
     match tokio::task::spawn_blocking({
         let nonce = nonce.clone();
-        let token = token.clone();
+        let hash = hash.clone();
         let secret = sv.secret.clone();
-        move || utils::verify_token(nonce, token, secret)
+        move || utils::verify_token(nonce, hash, secret)
     })
     .await
     {

@@ -43,7 +43,7 @@ async fn main_func() -> anyhow::Result<()> {
                 .route("/_challenge", get(routes::challenge::create))
                 .route("/_challenge/:payload/:hash", get(routes::challenge::verify))
                 .route(
-                    "/_challenge_revoke/:nonce/:token",
+                    "/_challenge_revoke/:nonce/:hash",
                     get(routes::challenge::revoke),
                 ),
         )

@@ -20,13 +20,13 @@ pub fn verify_challenge(payload: String, secret: String, hash: String) -> bool {
     encode(result) == hash
 }
 
-pub fn verify_token(nonce: String, token: String, secret: String) -> bool {
+pub fn verify_token(nonce: String, hash: String, secret: String) -> bool {
     let mut h = Sha3_512::new();
     h.update("short-link-token_");
     h.update(nonce.as_bytes());
     h.update(secret.as_bytes());
     let result = h.finalize();
-    encode(result) == token
+    encode(result) == hash
 }
 
 pub async fn auth_token(
