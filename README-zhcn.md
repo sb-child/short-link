@@ -31,9 +31,9 @@ CREATE DATABASE
 
 ```toml
 database_url = "postgres://用户名:数据库密码@127.0.0.1/数据库名"
-host = "127.0.0.1"  # this short_link server will listen on `http://127.0.0.1`
-port = 3000  # and the port will be `3000`
-base = "/"  # all routes will be based on `/`
+host = "127.0.0.1"  # 服务端地址 `http://127.0.0.1`
+port = 3000  # 服务端端口 `3000`
+base = "/"  # 所有路由基于 `/`
 ...
 [service]
 secret = "管理员密码"
