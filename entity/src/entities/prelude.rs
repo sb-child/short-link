@@ -3,3 +3,4 @@
 pub use super::challenge::Entity as Challenge;
 pub use super::short_link::Entity as ShortLink;
 pub use super::token::Entity as Token;
+pub use super::views::Entity as Views;

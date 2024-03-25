@@ -3,12 +3,14 @@
 use sea_orm::entity::prelude::*;
 
 #[derive(Clone, Debug, PartialEq, DeriveEntityModel, Eq)]
-#[sea_orm(table_name = "short_link")]
+#[sea_orm(table_name = "views")]
 pub struct Model {
-    #[sea_orm(primary_key, auto_increment = false)]
-    pub name: String,
+    #[sea_orm(primary_key)]
+    pub id: i64,
+    pub link_name: String,
     pub target: String,
-    pub enabled: bool,
+    pub user_agent: String,
+    pub created_at: DateTime,
 }
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]

@@ -33,7 +33,6 @@ pub async fn index(
                         name: sea_orm::ActiveValue::set(id.clone()),
                         target: sea_orm::ActiveValue::NotSet,
                         enabled: sea_orm::ActiveValue::NotSet,
-                        counter: sea_orm::ActiveValue::set(link.counter + 1),
                     })
                     .filter(entity::short_link::Column::Name.eq(id))
                     .exec(ts)
@@ -94,8 +93,11 @@ pub struct UpdateResp {
 pub struct LinkProps {
     target: Option<String>,
     enabled: Option<bool>,
-    counter: Option<i64>,
+    counter: Option<Vec<CounterItem>>,
 }
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct CounterItem {}
 
 pub async fn update(
     State((db, sv)): State<(DatabaseConnection, ServiceConfig)>,
@@ -142,7 +144,7 @@ async fn view_link(
                     props: LinkProps {
                         target: Some(x.target),
                         enabled: Some(x.enabled),
-                        counter: Some(x.counter),
+                        counter: None,
                     },
                 }))
             }
@@ -172,11 +174,10 @@ async fn insert_link(
         return Err(ShortLinkError::FieldRequired().to_error().to_response());
     };
     let enabled = if let Some(x) = props.enabled { x } else { true };
-    let counter = if let Some(x) = props.counter { x } else { 0 };
     let props_2 = LinkProps {
         target: Some(target.clone()),
         enabled: Some(enabled),
-        counter: Some(counter),
+        counter: None,
     };
     match db
         .transaction(|ts| {
@@ -185,7 +186,6 @@ async fn insert_link(
                     name: sea_orm::ActiveValue::Set(link_id),
                     target: sea_orm::ActiveValue::Set(target),
                     enabled: sea_orm::ActiveValue::Set(enabled),
-                    counter: sea_orm::ActiveValue::Set(counter),
                 })
                 .exec(ts)
                 .await?;
@@ -267,11 +267,6 @@ async fn update_link(
                     } else {
                         sea_orm::ActiveValue::NotSet
                     },
-                    counter: if let Some(x) = props.counter {
-                        sea_orm::ActiveValue::Set(x)
-                    } else {
-                        sea_orm::ActiveValue::NotSet
-                    },
                 })
                 .filter(entity::short_link::Column::Name.eq(link_id))
                 .exec(ts)
@@ -286,7 +281,7 @@ async fn update_link(
                 props: LinkProps {
                     target: Some(x.target),
                     enabled: Some(x.enabled),
-                    counter: Some(x.counter),
+                    counter: None,
                 },
             }));
         }

@@ -4,6 +4,8 @@
     "./Cargo.toml",
     "./Cargo.toml",
     "./Cargo.toml",
-    "./migration/Cargo.toml"
+    "./migration/Cargo.toml",
+    "./migration/Cargo.toml",
+    "./Cargo.toml"
   ]
 }

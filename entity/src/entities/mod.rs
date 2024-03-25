@@ -5,3 +5,4 @@ pub mod prelude;
 pub mod challenge;
 pub mod short_link;
 pub mod token;
+pub mod views;
