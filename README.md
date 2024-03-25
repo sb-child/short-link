@@ -12,7 +12,37 @@ build for Linux (musl): `./build.sh`
 
 ## Usage
 
-todo
+1. Build this program and copy the release executable `short_link` and `ShortLink.toml` to your server.
+
+2. Install `postgresql` and create a user and database:
+
+```bash
+$ sudo -u postgres psql
+psql (15.6 (Debian 15.6-0+deb12u1))
+Type "help" for help.
+
+postgres=# create user USER_NAME password 'STRONG_PASSWORD';
+CREATE ROLE
+postgres=# create database DATABASE_NAME owner USER_NAME;
+CREATE DATABASE
+```
+
+3. Modify your config file `ShortLink.toml`:
+
+```toml
+database_url = "postgres://USER_NAME:STRONG_PASSWORD@127.0.0.1/DATABASE_NAME"
+host = "127.0.0.1"  # this short_link server will listen on `http://127.0.0.1`
+port = 3000  # and the port will be `3000`
+base = "/"  # all routes will be based on `/`
+...
+[service]
+secret = "ANOTHER_STRONG_PASSWORD"
+...
+```
+
+4. Run the `short_link` executable.
+
+5. [Refer the Admin API example](./example_client.py)
 
 ## License
 

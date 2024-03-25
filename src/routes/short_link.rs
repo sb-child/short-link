@@ -15,6 +15,7 @@ pub async fn index(
     State((db, _sv)): State<(DatabaseConnection, ServiceConfig)>,
     Path(id): Path<String>,
 ) -> Result<Redirect, ErrorResponse> {
+    // todo: improve this
     match db
         .transaction(|ts| {
             Box::pin(async move {

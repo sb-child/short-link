@@ -5,6 +5,7 @@ use axum::{
     Router,
 };
 
+use migration::MigratorTrait;
 use short_link::{
     config::{Cfg, LogLevel},
     database::{new_connection, DatabaseOptions},
@@ -17,6 +18,7 @@ async fn main_func() -> anyhow::Result<()> {
     let cfg_file = tokio::fs::read_to_string(cfg_file).await?;
     let cfg = toml::from_str::<Cfg>(&cfg_file)?;
 
+    println!("Init tracing ...");
     tracing_subscriber::fmt()
         .with_max_level(match cfg.log_level {
             LogLevel::Trace => tracing::Level::TRACE,
@@ -27,13 +29,15 @@ async fn main_func() -> anyhow::Result<()> {
         })
         .init();
 
-    println!("Starting ...");
-
+    println!("Connecting database ...");
     let db = new_connection(DatabaseOptions {
         url: cfg.database_url,
     })
     .await?;
+    println!("Running migration ...");
+    migration::Migrator::up(&db, None).await?;
 
+    println!("Starting ...");
     let app = Router::new()
         .nest(
             &cfg.base,
@@ -50,7 +54,7 @@ async fn main_func() -> anyhow::Result<()> {
         .with_state((db, cfg.service));
 
     let addr = SocketAddr::new(cfg.host.parse()?, cfg.port);
-    println!("listening on {addr} ...");
+    println!("http server is listening on {addr}");
     let listener = tokio::net::TcpListener::bind(addr).await?;
     axum::serve(listener, app).await?;
     Ok(())

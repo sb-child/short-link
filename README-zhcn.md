@@ -12,7 +12,37 @@
 
 ## 怎么用
 
-还没写
+1. 先编译, 然后把编译好的程序 `short_link` 和 `ShortLink.toml` 复制到部署环境
+
+2. 安装 `postgresql`, 创建一个用户和数据库:
+
+```bash
+$ sudo -u postgres psql
+psql (15.6 (Debian 15.6-0+deb12u1))
+Type "help" for help.
+
+postgres=# create user 用户名 password '数据库密码';
+CREATE ROLE
+postgres=# create database 数据库名 owner 用户名;
+CREATE DATABASE
+```
+
+3. 修改 `ShortLink.toml`:
+
+```toml
+database_url = "postgres://用户名:数据库密码@127.0.0.1/数据库名"
+host = "127.0.0.1"  # this short_link server will listen on `http://127.0.0.1`
+port = 3000  # and the port will be `3000`
+base = "/"  # all routes will be based on `/`
+...
+[service]
+secret = "管理员密码"
+...
+```
+
+4. 运行 `short_link`
+
+5. [看看管理员 API 示例](./example_client.py)
 
 ## 许可证
 

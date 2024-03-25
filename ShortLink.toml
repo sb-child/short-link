@@ -6,5 +6,5 @@ log_level = "Warn"
 
 [service]
 secret = "YcDgFkJjDCwr5eOlGkxUlaperl7BwoWN"
-challenge_timeout = 60
+challenge_timeout = 5
 token_timeout = 60

@@ -42,7 +42,12 @@ sea-orm = { version = "*", features = [
     "with-uuid",
     "postgres-array",
 ] }
+sea-orm-migration = { version = "*", features = [
+    "runtime-tokio-rustls",
+    "sqlx-postgres",
+] }
 entity = { path = "entity" }
+migration = { path = "migration" }
 
 [profile.release]
 opt-level = "z"
