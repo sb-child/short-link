@@ -1,0 +1,18 @@
+# (for systemd) put it in /etc/systemd/system/shortlink.service
+[Unit]
+Description=Short-Link service
+Documentation=https://github.com/sb-child/short-link
+After=system.slice multi-user.target network.target postgresql.service
+Wants=network.target postgresql.service
+
+[Service]
+Type=simple
+User=shortlink
+SyslogIdentifier=shortlink
+RestartSec=5s
+WorkingDirectory=/opt/shortlink
+ExecStart=/opt/shortlink/short_link-amd64
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
