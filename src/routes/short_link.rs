@@ -3,6 +3,7 @@ use axum::{
     response::Redirect,
     Json,
 };
+use axum_extra::{headers, TypedHeader};
 use sea_orm::{ColumnTrait, DatabaseConnection, DbErr, EntityTrait, QueryFilter, TransactionTrait};
 
 use crate::{
@@ -14,13 +15,19 @@ use crate::{
 pub async fn index(
     State((db, _sv)): State<(DatabaseConnection, ServiceConfig)>,
     Path(id): Path<String>,
+    ua: Option<TypedHeader<headers::UserAgent>>,
 ) -> Result<Redirect, ErrorResponse> {
-    // todo: improve this
+    let ua_string = match ua {
+        Some(x) => x.to_string(),
+        None => "".to_string(),
+    };
+    let now = chrono::Utc::now().naive_utc();
     match db
         .transaction(|ts| {
             Box::pin(async move {
+                let link_name = id;
                 let link = entity::short_link::Entity::find()
-                    .filter(entity::short_link::Column::Name.eq(id.clone()))
+                    .filter(entity::short_link::Column::Name.eq(link_name.clone()))
                     .filter(entity::short_link::Column::Enabled.eq(true))
                     .one(ts)
                     .await;
@@ -28,23 +35,24 @@ pub async fn index(
                     Ok(link) => link,
                     Err(e) => return Err(e),
                 };
-                return if let Some(link) = link {
-                    match entity::short_link::Entity::update(entity::short_link::ActiveModel {
-                        name: sea_orm::ActiveValue::set(id.clone()),
-                        target: sea_orm::ActiveValue::NotSet,
-                        enabled: sea_orm::ActiveValue::NotSet,
+                if let Some(link) = link {
+                    let v = entity::views::Entity::insert(entity::views::ActiveModel {
+                        id: sea_orm::ActiveValue::NotSet,
+                        link_name: sea_orm::ActiveValue::Set(link_name),
+                        target: sea_orm::ActiveValue::Set(link.target.clone()),
+                        user_agent: sea_orm::ActiveValue::Set(ua_string),
+                        created_at: sea_orm::ActiveValue::Set(now),
                     })
-                    .filter(entity::short_link::Column::Name.eq(id))
                     .exec(ts)
-                    .await
-                    {
+                    .await;
+                    match v {
                         Ok(_) => {}
                         Err(e) => return Err(e),
-                    };
+                    }
                     Ok(Some(link))
                 } else {
                     Ok(None)
-                };
+                }
             })
         })
         .await
@@ -217,7 +225,11 @@ async fn delete_link(
     match db
         .transaction(|ts| {
             Box::pin(async move {
-                entity::short_link::Entity::delete_by_id(link_id)
+                entity::short_link::Entity::delete_by_id(link_id.clone())
+                    .exec(ts)
+                    .await?;
+                entity::views::Entity::delete_many()
+                    .filter(entity::views::Column::LinkName.eq(link_id))
                     .exec(ts)
                     .await?;
                 Ok::<_, DbErr>(())

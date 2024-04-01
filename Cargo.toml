@@ -21,6 +21,7 @@ tracing-subscriber = "*"
 ansi_term = "*"
 
 axum = { version = "*" }
+axum-extra = { version = "*", features = ["typed-header"] }
 chrono = { version = "*" }
 bytes = { version = "*" }
 
